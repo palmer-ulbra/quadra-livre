@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quadra Livre</title>
+    <link rel="stylesheet" href="estilo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Bem-vindo à Quadra Livr</h1>
+      <p>Reserve sua quadra em poucos cliques. Funcionamos todos os dias, das 8h às 23h.</p>
+      <div class="grade" id="quadras"></div>
+    </main>
+
+    <script type="module">
+      import { api, montarPagina, reais, usuarioLogado } from "./comum.js";
+
+      montarPagina();
+      const quadras = await api("/quadras");
+      const destino = usuarioLogado()?.perfil === "JOGADOR" ? "reservar.html" : "login.html";
+      document.querySelector("#quadras").innerHTML = quadras
+        .map(
+          (q) => `
+          <div class="cartao">
+            <h2>${q.nome}</h2>
+            <p>${q.esporte}</p>
+            <p><strong>${reais(q.preco_hora)}</strong> por hora</p>
+            <a href="${destino}?quadra=${q.id}">Reservar</a>
+          </div>`,
+        )
+        .join("");
+    </script>
+  </body>
+</html>

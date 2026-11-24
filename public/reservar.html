@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reservar · Quadra Livre</title>
+    <link rel="stylesheet" href="estilo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Reservar uma quadra</h1>
+      <form id="form" class="cartao">
+        <label for="quadra">Quadra</label>
+        <select id="quadra"></select>
+
+        <label for="data">Data</label>
+        <input id="data" type="date" required />
+
+        <label id="rotulo-horarios">Horário</label>
+        <div class="horarios" id="horarios" role="group" aria-labelledby="rotulo-horarios"></div>
+
+        <label for="cartao">Número do cartão</label>
+        <input id="cartao" inputmode="numeric" placeholder="4111 1111 1111 1111" required />
+
+        <p id="resumo"></p>
+        <p class="mensagem erro" id="mensagem" role="alert"></p>
+        <button id="reservar" disabled>Reservar e pagar</button>
+      </form>
+    </main>
+
+    <script type="module">
+      import { api, exigeLogin, hojeISO, montarPagina, reais } from "./comum.js";
+
+      exigeLogin("JOGADOR");
+      montarPagina();
+
+      const $ = (s) => document.querySelector(s);
+      const quadras = await api("/quadras");
+      let horaEscolhida = null;
+
+      $("#quadra").innerHTML = quadras
+        .map((q) => `<option value="${q.id}">${q.nome} · ${q.esporte} · ${reais(q.preco_hora)}/h</option>`)
+        .join("");
+      const pedida = new URLSearchParams(location.search).get("quadra");
+      if (pedida) $("#quadra").value = pedida;
+      $("#data").min = hojeISO();
+      $("#data").value = hojeISO();
+
+      async function carregarHorarios() {
+        horaEscolhida = null;
+        atualizarResumo();
+        const horarios = await api(`/quadras/${$("#quadra").value}/horarios?data=${$("#data").value}`);
+        $("#horarios").innerHTML = horarios
+          .map(
+            (h) =>
+              `<button type="button" data-hora="${h.hora}" aria-pressed="false" ${h.livre ? "" : "disabled"}>${h.hora}h</button>`,
+          )
+          .join("");
+      }
+
+      function atualizarResumo() {
+        const quadra = quadras.find((q) => q.id === Number($("#quadra").value));
+        $("#resumo").textContent =
+          horaEscolhida === null ? "" : `${quadra.nome}, ${horaEscolhida}h às ${horaEscolhida + 1}h: ${reais(quadra.preco_hora)}`;
+        $("#reservar").disabled = horaEscolhida === null;
+      }
+
+      $("#horarios").addEventListener("click", (evento) => {
+        const botao = evento.target.closest("button[data-hora]");
+        if (!botao) return;
+        document.querySelectorAll("#horarios button").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        botao.setAttribute("aria-pressed", "true");
+        horaEscolhida = Number(botao.dataset.hora);
+        atualizarResumo();
+      });
+
+      $("#quadra").addEventListener("change", carregarHorarios);
+      $("#data").addEventListener("change", carregarHorarios);
+
+      $("#form").addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        $("#mensagem").textContent = "";
+        $("#reservar").disabled = true;
+        $("#reservar").textContent = "Processando pagamento…";
+        try {
+          const reserva = await api("/reservas", {
+            method: "POST",
+            corpo: {
+              quadra_id: Number($("#quadra").value),
+              data: $("#data").value,
+              hora: horaEscolhida,
+              cartao: $("#cartao").value,
+            },
+          });
+          location.href = `comprovante.html?id=${reserva.id}`;
+        } catch (erro) {
+          $("#mensagem").textContent = erro.message;
+          $("#reservar").disabled = false;
+          $("#reservar").textContent = "Reservar e pagar";
+        }
+      });
+
+      await carregarHorarios();
+    </script>
+  </body>
+</html>

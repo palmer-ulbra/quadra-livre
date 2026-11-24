@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar · Quadra Livre</title>
+    <link rel="stylesheet" href="estilo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Entrar</h1>
+      <form id="form" class="cartao">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" required autocomplete="username" />
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" required autocomplete="current-password" />
+        <p class="mensagem erro" id="mensagem" role="alert"></p>
+        <button>Entrar</button>
+      </form>
+    </main>
+
+    <script type="module">
+      import { api, montarPagina } from "./comum.js";
+
+      montarPagina();
+      document.querySelector("#form").addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        try {
+          const { token, usuario } = await api("/login", {
+            method: "POST",
+            corpo: {
+              email: document.querySelector("#email").value,
+              senha: document.querySelector("#senha").value,
+            },
+          });
+          localStorage.setItem("token", token);
+          localStorage.setItem("usuario", JSON.stringify(usuario));
+          location.href = usuario.perfil === "JOGADOR" ? "reservar.html" : "equipe.html";
+        } catch (erro) {
+          document.querySelector("#mensagem").textContent = erro.message;
+        }
+      });
+    </script>
+  </body>
+</html>

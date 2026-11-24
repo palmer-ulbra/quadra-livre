@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Equipe · Quadra Livre</title>
+    <link rel="stylesheet" href="estilo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Área da equipe</h1>
+      <p class="mensagem" id="mensagem" role="status"></p>
+
+      <section class="cartao">
+        <h2>Balcão</h2>
+        <label for="dia">Reservas do dia</label>
+        <input id="dia" type="date" />
+        <table>
+          <thead><tr><th>Hora</th><th>Quadra</th><th>Jogador</th><th>Pagamento</th><th></th></tr></thead>
+          <tbody id="do-dia"></tbody>
+        </table>
+
+        <h3>Nova reserva no balcão</h3>
+        <form id="form-balcao">
+          <label for="jogador">Jogador</label>
+          <select id="jogador"></select>
+          <label for="b-quadra">Quadra</label>
+          <select id="b-quadra"></select>
+          <label for="b-data">Data</label>
+          <input id="b-data" type="date" required />
+          <label for="b-hora">Horário</label>
+          <select id="b-hora"></select>
+          <p><button>Reservar (pagamento no balcão)</button></p>
+        </form>
+      </section>
+
+      <section class="cartao" id="secao-precos" hidden>
+        <h2>Preços</h2>
+        <table><tbody id="precos"></tbody></table>
+      </section>
+
+      <section class="cartao" id="secao-relatorio" hidden>
+        <h2>Relatório mensal</h2>
+        <label for="mes">Mês</label>
+        <input id="mes" type="month" />
+        <p><button id="gerar" class="secundario">Gerar relatório</button></p>
+        <div id="relatorio"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { api, dataBR, exigeLogin, hojeISO, montarPagina, reais } from "./comum.js";
+
+      const usuario = exigeLogin("ATENDENTE", "GERENTE");
+      montarPagina();
+
+      const $ = (s) => document.querySelector(s);
+      const avisar = (texto, erro = false) => {
+        $("#mensagem").className = erro ? "mensagem erro" : "mensagem";
+        $("#mensagem").textContent = texto;
+      };
+      const quadras = await api("/quadras");
+
+      // ---------- Balcão ----------
+      async function carregarDia() {
+        const reservas = await api(`/balcao/reservas?data=${$("#dia").value}`);
+        $("#do-dia").innerHTML =
+          reservas
+            .map(
+              (r) => `<tr class="status-${r.status}">
+                <td>${r.hora}h</td><td>${r.quadra}</td><td>${r.jogador}</td>
+                <td>${r.pagamento === "CARTAO" ? "cartão" : "balcão"} · ${reais(r.valor_pago)}</td>
+                <td>${r.status === "CONFIRMADA" ? `<button class="link cancelar" data-id="${r.id}">Cancelar</button>` : "cancelada"}</td>
+              </tr>`,
+            )
+            .join("") || `<tr><td colspan="5">Nenhuma reserva em ${dataBR($("#dia").value)}.</td></tr>`;
+      }
+
+      $("#do-dia").addEventListener("click", async (evento) => {
+        const botao = evento.target.closest(".cancelar");
+        if (!botao || !confirm("Cancelar esta reserva?")) return;
+        try {
+          const r = await api(`/reservas/${botao.dataset.id}/cancelamento`, { method: "POST" });
+          avisar(`Reserva ${r.id} cancelada. Devolver ao jogador: ${reais(r.reembolso)} (${r.percentual}%).`);
+        } catch (erro) {
+          avisar(erro.message, true);
+        }
+        await carregarDia();
+      });
+
+      const jogadores = await api("/jogadores");
+      $("#jogador").innerHTML = jogadores.map((j) => `<option value="${j.id}">${j.nome} (${j.email})</option>`).join("");
+      $("#b-quadra").innerHTML = quadras.map((q) => `<option value="${q.id}">${q.nome} · ${q.esporte}</option>`).join("");
+      $("#b-hora").innerHTML = Array.from({ length: 15 }, (_, i) => `<option value="${i + 8}">${i + 8}h</option>`).join("");
+      $("#dia").value = $("#b-data").value = hojeISO();
+      $("#b-data").min = hojeISO();
+      $("#dia").addEventListener("change", carregarDia);
+
+      $("#form-balcao").addEventListener("submit", async (evento) => {
+        evento.preventDefault();
+        try {
+          const r = await api("/balcao/reservas", {
+            method: "POST",
+            corpo: {
+              usuario_id: Number($("#jogador").value),
+              quadra_id: Number($("#b-quadra").value),
+              data: $("#b-data").value,
+              hora: Number($("#b-hora").value),
+            },
+          });
+          avisar(`Reserva ${r.id} criada: ${r.jogador}, ${r.quadra}, ${dataBR(r.data)} às ${r.hora}h. Cobrar ${reais(r.valor_pago)}.`);
+          $("#dia").value = r.data;
+          await carregarDia();
+        } catch (erro) {
+          avisar(erro.message, true);
+        }
+      });
+
+      await carregarDia();
+
+      // ---------- Preços ----------
+      if (usuario.perfil !== "JOGADOR") {
+        $("#secao-precos").hidden = false;
+        $("#precos").innerHTML = quadras
+          .map(
+            (q) => `<tr>
+              <td>${q.nome} · ${q.esporte}</td>
+              <td>R$ <input id="preco-${q.id}" aria-label="Preço por hora da ${q.nome}" type="number" min="1" step="0.01" value="${(q.preco_hora / 100).toFixed(2)}" style="width:7rem" /></td>
+              <td><button class="secundario salvar" data-id="${q.id}">Salvar</button></td>
+            </tr>`,
+          )
+          .join("");
+        $("#precos").addEventListener("click", async (evento) => {
+          const botao = evento.target.closest(".salvar");
+          if (!botao) return;
+          const reaisDigitados = Number($(`#preco-${botao.dataset.id}`).value);
+          try {
+            const q = await api(`/quadras/${botao.dataset.id}`, {
+              method: "PUT",
+              corpo: { preco_hora: Math.round(reaisDigitados * 100) },
+            });
+            avisar(`${q.nome} agora custa ${reais(q.preco_hora)} por hora.`);
+          } catch (erro) {
+            avisar(erro.message, true);
+          }
+        });
+      }
+
+      // ---------- Relatório ----------
+      if (usuario.perfil === "GERENTE") {
+        $("#secao-relatorio").hidden = false;
+        $("#mes").value = hojeISO().slice(0, 7);
+        $("#gerar").addEventListener("click", async () => {
+          try {
+            const r = await api(`/relatorio?mes=${$("#mes").value}`);
+            $("#relatorio").innerHTML = `
+              <p>Reservas confirmadas: <strong>${r.total_reservas}</strong> ·
+                 Faturamento: <strong>${reais(r.faturamento)}</strong> ·
+                 Mais reservada: <strong>${r.mais_reservada}</strong></p>
+              <table>
+                <thead><tr><th>Quadra</th><th>Reservas</th><th>Faturamento</th></tr></thead>
+                <tbody>${r.quadras.map((q) => `<tr><td>${q.nome}</td><td>${q.reservas}</td><td>${reais(q.faturamento)}</td></tr>`).join("")}</tbody>
+              </table>`;
+          } catch (erro) {
+            $("#relatorio").innerHTML = `<p class="mensagem erro">${erro.message}</p>`;
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

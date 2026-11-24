@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comprovante · Quadra Livre</title>
+    <link rel="stylesheet" href="estilo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Reserva confirmada ✅</h1>
+      <div class="cartao" id="comprovante"></div>
+      <a href="minhas.html">Ver minhas reservas</a>
+    </main>
+
+    <script type="module">
+      import { api, exigeLogin, montarPagina, reais } from "./comum.js";
+
+      exigeLogin();
+      montarPagina();
+
+      const id = new URLSearchParams(location.search).get("id");
+      const r = await api(`/reservas/${id}`);
+      const inicio = new Date(`${r.data}T${String(r.hora).padStart(2, "0")}:00`);
+
+      document.querySelector("#comprovante").innerHTML = `
+        <p><strong>Reserva nº ${r.id}</strong></p>
+        <p>${r.quadra} · ${r.esporte}</p>
+        <p>Data: ${inicio.toLocaleDateString("pt-BR")}</p>
+        <p>Horário: ${inicio.toISOString().slice(11, 16)} (duração de 1 hora)</p>
+        <p>Jogador: ${r.jogador}</p>
+        <p>Valor pago: ${reais(r.valor_pago)} (${r.pagamento === "CARTAO" ? "cartão" : "no balcão"})</p>
+        <p>Chegue com 10 minutos de antecedência.</p>`;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,71 @@
+name: Defeito
+description: Registrar um defeito encontrado na Quadra Livre
+title: "[Defeito] "
+labels: ["triagem"]
+body:
+  - type: textarea
+    id: passos
+    attributes:
+      label: Passos para reproduzir
+      description: Numerados e mínimos. Inclua o usuário (perfil) e os dados usados.
+      placeholder: |
+        1. Rodar `npm run seed`
+        2. Entrar como ana@exemplo.com
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Resultado esperado
+      description: O que deveria acontecer. Cite a regra do README (R1…R10) quando houver.
+    validations:
+      required: true
+  - type: textarea
+    id: obtido
+    attributes:
+      label: Resultado obtido
+      description: O que aconteceu de fato.
+    validations:
+      required: true
+  - type: textarea
+    id: evidencias
+    attributes:
+      label: Evidências
+      description: Print, resposta da API, código ERR-… e o trecho do log do servidor, vídeo.
+  - type: input
+    id: ambiente
+    attributes:
+      label: Ambiente
+      description: Navegador, sistema operacional, tamanho de tela, fuso horário.
+      placeholder: Chrome 142, macOS 15, 1440×900, America/Sao_Paulo
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão
+      description: Está no rodapé do site.
+      placeholder: 2.0.0-rc.1
+    validations:
+      required: true
+  - type: dropdown
+    id: frequencia
+    attributes:
+      label: Frequência
+      options:
+        - Sempre
+        - Às vezes (intermitente)
+        - Aconteceu uma vez
+    validations:
+      required: true
+  - type: dropdown
+    id: severidade
+    attributes:
+      label: Severidade sugerida
+      description: O tamanho do estrago. A triagem confirma ou ajusta.
+      options:
+        - Crítica (perda de dinheiro ou de dados, bloqueia o uso)
+        - Alta (regra de negócio errada, sem contorno simples)
+        - Média (atrapalha, mas tem contorno)
+        - Baixa (cosmético)

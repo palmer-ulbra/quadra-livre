@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Minhas reservas · Quadra Livre</title>
+    <link rel="stylesheet" href="estilo.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Minhas reservas</h1>
+      <p id="contagem"></p>
+      <p class="mensagem" id="mensagem" role="status"></p>
+      <div id="lista"></div>
+    </main>
+
+    <script type="module">
+      import { api, dataBR, exigeLogin, montarPagina, reais } from "./comum.js";
+
+      exigeLogin("JOGADOR");
+      montarPagina();
+
+      async function carregar() {
+        const reservas = await api("/reservas");
+        const ativas = reservas.filter((r) => r.status === "CONFIRMADA");
+        document.querySelector("#contagem").textContent = `Você tem ${ativas.length} reservas ativas.`;
+        document.querySelector("#lista").innerHTML = reservas
+          .map(
+            (r) => `
+            <div class="cartao status-${r.status}">
+              <strong>${dataBR(r.data)}, ${r.hora}h</strong> · ${r.quadra} (${r.esporte}) · ${reais(r.valor_pago)}
+              ${r.status === "CANCELADA" ? `· cancelada, devolvido ${reais(r.reembolso)}` : ""}
+              <div>
+                <a href="comprovante.html?id=${r.id}">Comprovante</a>
+                ${r.status === "CONFIRMADA" ? `<button class="link cancelar" data-id="${r.id}">Cancelar</button>` : ""}
+              </div>
+            </div>`,
+          )
+          .join("");
+      }
+
+      document.querySelector("#lista").addEventListener("click", async (evento) => {
+        const botao = evento.target.closest(".cancelar");
+        if (!botao || !confirm("Cancelar esta reserva? O reembolso segue a política de cancelamento.")) return;
+        const mensagem = document.querySelector("#mensagem");
+        try {
+          const r = await api(`/reservas/${botao.dataset.id}/cancelamento`, { method: "POST" });
+          mensagem.className = "mensagem";
+          mensagem.textContent = `Reserva cancelada. Reembolso: ${reais(r.reembolso)} (${r.percentual}%).`;
+        } catch (erro) {
+          mensagem.className = "mensagem erro";
+          mensagem.textContent = erro.message;
+        }
+        await carregar();
+      });
+
+      await carregar();
+    </script>
+  </body>
+</html>
