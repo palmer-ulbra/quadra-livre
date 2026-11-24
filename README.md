@@ -83,12 +83,32 @@ rótulos (`sev:*` e `prio:*`) na triagem.
 
 Para criar os rótulos no seu fork: `bash scripts/rotulos.sh` (precisa do [GitHub CLI](https://cli.github.com/) logado).
 
+## Depois da publicação: o sábado do incidente
+
+A 2.0 foi publicada. No sábado, 28/11/2026, parte das reservas começou a falhar. O dossiê
+do incidente está na pasta `incidente/`:
+
+| Arquivo | O que é |
+| --- | --- |
+| `incidente/painel.txt` | o painel de métricas: requisições, % de erro 5xx e p95 por hora e por rota |
+| `incidente/sabado.log` | o log de acesso e de erros do sábado, das 8h às 12h |
+
+Para gerar um sábado novo (os números mudam um pouco a cada vez): `npm run sabado`. Ele
+usa um banco em memória e não mexe no `data/quadra-livre.sqlite`.
+
+**Feature flag:** `PAGAMENTO_ONLINE=off npm start` desliga a reserva com cartão pelo site
+(responde `503` com uma mensagem para reservar no balcão). O balcão continua funcionando.
+
+O gateway simulado tem três botões, em `src/pagamento.js`: `taxaDeFalha`, `latenciaMs` e
+`esperaNaFalhaMs`.
+
 ## Onde está cada coisa
 
 | Arquivo | O que faz |
 | --- | --- |
 | `src/app.js` | as rotas e as regras |
 | `src/pagamento.js` | o gateway de pagamento simulado |
+| `scripts/sabado.js` | simula o sábado do incidente e gera `incidente/` |
 | `src/db.js` | abre o SQLite e cria as tabelas |
 | `src/seed.js` | o cenário da aula |
 | `src/datas.js` | datas no fuso local |

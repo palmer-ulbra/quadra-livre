@@ -124,7 +124,16 @@ app.get("/api/reservas/:id", (req, res) => {
   res.json(reserva);
 });
 
+// Feature flag: PAGAMENTO_ONLINE=off desliga a reserva com cartão pelo site sem novo deploy.
+// O balcão continua funcionando. ponytail: lida uma vez, na subida (mudar = reiniciar com a
+// variável); num sistema real a flag vem de um serviço de flags e muda sem reiniciar.
+export const flags = { pagamentoOnline: process.env.PAGAMENTO_ONLINE !== "off" };
+
 app.post("/api/reservas", exigePerfil("JOGADOR"), async (req, res) => {
+  if (!flags.pagamentoOnline)
+    return res.status(503).json({
+      erro: "Pagamento online temporariamente indisponível. Reserve pelo balcão: (51) 3333-0000.",
+    });
   const { quadra_id, data, hora, cartao } = req.body ?? {};
   const resultado = criarReserva({
     usuario_id: req.usuario.id,

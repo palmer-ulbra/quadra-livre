@@ -1,0 +1,19 @@
+Quadra Livre 2.0.0-rc.1 · sábado 28/11/2026
+
+Por hora
+                               req erro 5xx      p95
+08h-09h                         60      0%    378ms
+09h-10h                         60      0%    372ms
+10h-11h                         60     13%   5019ms
+11h-12h                         60     13%   5029ms
+
+Por rota (8h-12h)
+                               req erro 5xx      p95
+GET /api/quadras                96      0%     22ms
+GET /api/quadras/:id/horarios    48      0%     22ms
+POST /api/reservas              96     17%   5029ms
+
+Reservas pelo site
+  confirmadas ao jogador (201):            79
+  gravadas no banco como CONFIRMADA:       95
+  diferença (reserva sem cobrança?):       16
