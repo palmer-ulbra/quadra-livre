@@ -3,6 +3,14 @@ description: Registrar um defeito encontrado na Quadra Livre
 title: "[Defeito] "
 labels: ["triagem"]
 body:
+  - type: input
+    id: grupo
+    attributes:
+      label: Quem registrou
+      description: Grupo ou dupla e nomes.
+      placeholder: "Dupla 2: Ana e Bruno"
+    validations:
+      required: true
   - type: textarea
     id: passos
     attributes:
@@ -69,3 +77,12 @@ body:
         - Alta (regra de negócio errada, sem contorno simples)
         - Média (atrapalha, mas tem contorno)
         - Baixa (cosmético)
+  - type: dropdown
+    id: prioridade
+    attributes:
+      label: Prioridade sugerida
+      description: A urgência da correção. A triagem confirma ou ajusta.
+      options:
+        - Alta (corrigir antes de publicar)
+        - Média (corrigir na próxima versão)
+        - Baixa (quando der)
