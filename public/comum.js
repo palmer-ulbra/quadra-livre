@@ -6,6 +6,9 @@ export const reais = (centavos) =>
 
 export const dataBR = (iso) => iso.split("-").reverse().join("/");
 
+// A reserva ainda vai acontecer? (começa depois de agora, no fuso local)
+export const aindaVem = (r) => new Date(`${r.data}T${String(r.hora).padStart(2, "0")}:00`) > new Date();
+
 export const hojeISO = () => new Date().toLocaleDateString("sv"); // AAAA-MM-DD no fuso local
 
 export function usuarioLogado() {

@@ -49,7 +49,7 @@
     </main>
 
     <script type="module">
-      import { api, dataBR, exigeLogin, hojeISO, montarPagina, reais } from "./comum.js";
+      import { aindaVem, api, dataBR, exigeLogin, hojeISO, montarPagina, reais } from "./comum.js";
 
       const usuario = exigeLogin("ATENDENTE", "GERENTE");
       montarPagina();
@@ -70,7 +70,7 @@
               (r) => `<tr class="status-${r.status}">
                 <td>${r.hora}h</td><td>${r.quadra}</td><td>${r.jogador}</td>
                 <td>${r.pagamento === "CARTAO" ? "cartão" : "balcão"} · ${reais(r.valor_pago)}</td>
-                <td>${r.status === "CONFIRMADA" ? `<button class="link cancelar" data-id="${r.id}">Cancelar</button>` : "cancelada"}</td>
+                <td>${r.status !== "CONFIRMADA" ? "cancelada" : aindaVem(r) ? `<button class="link cancelar" data-id="${r.id}">Cancelar</button>` : "realizada"}</td>
               </tr>`,
             )
             .join("") || `<tr><td colspan="5">Nenhuma reserva em ${dataBR($("#dia").value)}.</td></tr>`;

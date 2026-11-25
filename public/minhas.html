@@ -15,14 +15,14 @@
     </main>
 
     <script type="module">
-      import { api, dataBR, exigeLogin, montarPagina, reais } from "./comum.js";
+      import { aindaVem, api, dataBR, exigeLogin, montarPagina, reais } from "./comum.js";
 
       exigeLogin("JOGADOR");
       montarPagina();
 
       async function carregar() {
         const reservas = await api("/reservas");
-        const ativas = reservas.filter((r) => r.status === "CONFIRMADA");
+        const ativas = reservas.filter((r) => r.status === "CONFIRMADA" && aindaVem(r));
         document.querySelector("#contagem").textContent = `Você tem ${ativas.length} reservas ativas.`;
         document.querySelector("#lista").innerHTML = reservas
           .map(
@@ -32,7 +32,7 @@
               ${r.status === "CANCELADA" ? `· cancelada, devolvido ${reais(r.reembolso)}` : ""}
               <div>
                 <a href="comprovante.html?id=${r.id}">Comprovante</a>
-                ${r.status === "CONFIRMADA" ? `<button class="link cancelar" data-id="${r.id}">Cancelar</button>` : ""}
+                ${r.status !== "CONFIRMADA" ? "" : aindaVem(r) ? `<button class="link cancelar" data-id="${r.id}">Cancelar</button>` : "· realizada"}
               </div>
             </div>`,
           )
