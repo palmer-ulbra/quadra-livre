@@ -45,7 +45,7 @@ button {
 }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 button.secundario { background: white; color: var(--verde); border: 1px solid var(--verde); }
-button.link { background: none; padding: 0; text-decoration: underline; }
+button.link { background: none; color: inherit; padding: 0; text-decoration: underline; }
 
 .horarios { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0; }
 .horarios button { width: 4.5rem; flex-shrink: 0; background: var(--verde-claro); color: var(--verde); border: 1px solid var(--verde); }
