@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 // às vezes não respondem: aqui, de propósito, uma parte das cobranças dá tempo esgotado.
 // Cartão de teste: 4111 1111 1111 1111 → aprovado. Qualquer outro → recusado.
 export const gateway = {
-  taxaDeFalha: 0.2, // fração das cobranças que dão tempo esgotado (os testes zeram)
+  taxaDeFalha: 0.6, // fração das cobranças que dão tempo esgotado (os testes zeram)
   latenciaMs: 300, // quanto uma cobrança normal demora
   esperaNaFalhaMs: 300, // quanto o gateway segura a conexão antes de desistir
 };

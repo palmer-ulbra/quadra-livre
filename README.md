@@ -92,6 +92,7 @@ do incidente está na pasta `incidente/`:
 | --- | --- |
 | `incidente/painel.txt` | o painel de métricas: requisições, % de erro 5xx e p95 por hora e por rota |
 | `incidente/sabado.log` | o log de acesso e de erros do sábado, das 8h às 12h |
+| `incidente/trace-ERR-2F5047.txt` | o trace (didático) de uma das reservas que falharam |
 
 Para gerar um sábado novo (os números mudam um pouco a cada vez): `npm run sabado`. Ele
 usa um banco em memória e não mexe no `data/quadra-livre.sqlite`.

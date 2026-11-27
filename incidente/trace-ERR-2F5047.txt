@@ -1,0 +1,16 @@
+TRACE da requisição ERR-2F5047 · sábado, 28/11/2026
+(didático: o Quadra Livre não tem OpenTelemetry. É o que um Jaeger mostraria, montado a partir do log e do código)
+
+trace_id 4bf92f3577b34da6a3ce929d0e0e4736 · início 10:03:58.214 · duração 5019 ms · status ERROR
+
+ETAPA (span)                          INÍCIO   DURAÇÃO  0s        1s        2s        3s        4s        5s
+POST /api/reservas                       0 ms  5019 ms  ██████████████████████████████████████████████████ ✗ 500
+├─ exigeLogin                            0 ms     0 ms  ▏
+├─ exigePerfil JOGADOR                   0 ms     0 ms  ▏
+├─ criarReserva                          1 ms     5 ms  ▏
+│  ├─ db SELECT quadras                  1 ms     1 ms  ▏            quadra_id=1
+│  ├─ db SELECT reservas (ocupado?)      2 ms     1 ms  ▏            nenhuma
+│  └─ db INSERT reservas                 3 ms     2 ms  ▏ ✓          reserva_id=1043 status=CONFIRMADA
+├─ gateway.cobrar                        6 ms  5012 ms   █████████████████████████████████████████████████ ✗
+│                                                                    valor=12000 erro="tempo esgotado"
+└─ tratador de erro                   5018 ms     1 ms                                                   ▏ ERR-2F5047 → 500
