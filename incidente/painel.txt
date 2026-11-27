@@ -10,7 +10,7 @@ Por hora
 Por rota (8h-12h)
                                req erro 5xx      p95
 GET /api/quadras                96      0%     22ms
-GET /api/quadras/:id/horarios    48      0%     22ms
+GET /api/quadras/:id/horarios   48      0%     22ms
 POST /api/reservas              96     17%   5029ms
 
 Reservas pelo site

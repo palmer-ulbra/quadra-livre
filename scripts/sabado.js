@@ -89,7 +89,7 @@ servidor.close();
 // ---------- o log ----------
 registros.sort((a, b) => a.quando.localeCompare(b.quando));
 const log = registros.flatMap((r) => {
-  const linha = `${r.quando} ${r.metodo.padEnd(4)} ${r.rota.padEnd(24)} ${r.status} ${String(r.ms).padStart(5)}ms`;
+  const linha = `${r.quando} ${r.metodo.padEnd(5)} ${r.rota.padEnd(25)} ${r.status} ${String(r.ms).padStart(5)}ms`;
   return r.codigo ? [`${linha} ${r.codigo}`, `${r.quando} ERROR ${r.codigo} ${detalhes.get(r.codigo)}`] : [linha];
 });
 
@@ -100,7 +100,7 @@ const p95 = (lista) => {
 };
 const linhaPainel = (rotulo, lista) => {
   const erros = lista.filter((r) => r.status >= 500).length;
-  return `${rotulo.padEnd(28)} ${String(lista.length).padStart(5)} ${(((erros / lista.length) * 100).toFixed(0) + "%").padStart(7)} ${(p95(lista) + "ms").padStart(8)}`;
+  return `${rotulo}${String(lista.length).padStart(34 - rotulo.length)} ${(((erros / lista.length) * 100).toFixed(0) + "%").padStart(7)} ${(p95(lista) + "ms").padStart(8)}`;
 };
 const cabecalho = `${"".padEnd(28)} ${"req".padStart(5)} ${"erro 5xx".padStart(7)} ${"p95".padStart(8)}`;
 const painel = ["Quadra Livre 2.0.0-rc.1 · sábado 28/11/2026", "", "Por hora", cabecalho];
